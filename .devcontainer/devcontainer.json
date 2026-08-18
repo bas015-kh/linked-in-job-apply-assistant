@@ -7,12 +7,17 @@
       "dockerDashComposeVersion": "v2"
     }
   },
-  "postCreateCommand": "npm ci",
-  "forwardPorts": [3000],
+  "postCreateCommand": "npm ci && npm --prefix backend ci",
+  "forwardPorts": [3000, 3001],
   "portsAttributes": {
     "3000": {
       "label": "ApplyPilot website",
       "onAutoForward": "openPreview",
+      "visibility": "private"
+    },
+    "3001": {
+      "label": "ApplyPilot private API",
+      "onAutoForward": "silent",
       "visibility": "private"
     }
   },

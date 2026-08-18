@@ -1,23 +1,72 @@
 services:
-  applypilot:
+  frontend:
     build:
       context: .
       dockerfile: Dockerfile
     init: true
     environment:
       NODE_ENV: development
+      BACKEND_INTERNAL_URL: http://backend:3001
     ports:
       - "3000:3000"
     volumes:
       - .:/workspace
-      - applypilot_node_modules:/workspace/node_modules
+      - frontend_node_modules:/workspace/node_modules
+    depends_on:
+      backend:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
       interval: 10s
       timeout: 5s
-      start_period: 20s
+      start_period: 30s
       retries: 5
     restart: unless-stopped
 
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    init: true
+    environment:
+      PORT: 3001
+      DATABASE_URL: postgres://${POSTGRES_USER:-applypilot}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-applypilot}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:3000}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      N8N_MODE: ${N8N_MODE:-mock}
+      N8N_BASE_URL: ${N8N_BASE_URL:-}
+      N8N_PROFILE_WEBHOOK_PATH: ${N8N_PROFILE_WEBHOOK_PATH:-}
+      N8N_JOB_EVALUATION_WEBHOOK_PATH: ${N8N_JOB_EVALUATION_WEBHOOK_PATH:-}
+      N8N_APPROVAL_WEBHOOK_PATH: ${N8N_APPROVAL_WEBHOOK_PATH:-}
+      N8N_WEBHOOK_SECRET: ${N8N_WEBHOOK_SECRET:-}
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:17.6-bookworm
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-applypilot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-applypilot}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
 volumes:
-  applypilot_node_modules:
+  frontend_node_modules:
+  postgres_data:
