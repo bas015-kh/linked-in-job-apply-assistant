@@ -39,3 +39,4 @@ yarn-error.log*
 /outputs/
 /work/
 /.vinext-dev*.log
+/.package-stage/
