@@ -1,7 +1,4 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -10,33 +7,34 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
-
-# next.js
-/.next/
-/.vinext/
+coverage/
+.next/
+.vinext/
 /out/
+dist/
+build/
 
-# misc
-.DS_Store
-*.pem
+.env
+.env.*
+!.env.example
 
-# debug
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+uploads/
+private/
+data/
+postgres-data/
+*.sqlite
+*.db
 
-# vercel
+.DS_Store
+*.pem
 .vercel
-
-/dist/
-/.wrangler/
-/outputs/
-/work/
-/.vinext-dev*.log
-/.package-stage/
+.wrangler/
+outputs/
+work/
+.package-stage/
